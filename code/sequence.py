@@ -1,40 +1,102 @@
 import difflib
+import heapq
+import itertools
 
 #TODO:  take two elements which have the most overlap total number out of all of them and merge together
 #TODO:  take longest substring and merge that with second largest substring or maybe string with most overlap
 def main():
-    with open("../Dataset/reads2.txt") as f:
+    with open("../Dataset/reads3.txt") as f:
         substrings = [line.rstrip() for line in f]
         substrings_copy = substrings[:]
 #new idea:  keep track of "most overlap":  greedily choose with most overlap (ex:  substrings)
+#TODO:  works for reads1, reads2, reads3 but will return very long very wrong things for read4+
+        res = find_string(substrings, substrings_copy)
+        print res
+        with open("output3.txt", "w") as f:
+            f.write(res +"\n")
 
-    #TODO:  use max heap
+def find_string(substrings, substrings_copy):
+#check to see if list of substrings is 1 --> then you have an answer
+#merge two strings that haven't been merged before
+#push everything to the heap
+#while loop of grabbing max from the heap pair merged with all of the leftover substring list (haven't been popped off)
+#itertools.combinations
+    """
+    h = []
+    merged = set()
+    pairs = itertools.combinations(substrings, 2)
+    for s1, s2 in pairs:
+        merges = get_max_overlap_2(s1, s2)
+        if not (s1, s2) in merged and not (s2, s1) in merged:
+            for merge in merges:
+                heapq.heappush(h, merge)
+                merged.add((s1, s2))
 
-        imm = [] 
-        for r1 in substrings:
-            for r2 in substrings:
-                if r1 != r2:
-                    res1 = get_max_overlap_2(r1, r2)
-                    print res1
-                    #max overlap is either none, or the result and the overlap 0..1 if the result
-                    imm.append(res1)
-        max_overlap = max(imm, key=lambda x: x[1])
-        if check_for_solurion(substrings_copy, max_overlap):
-            return max_overlap
-        
+    while len(substrings) != 1:
+        #print len(substrings)
+        #for s in substrings:  merge(max_overlap, s)
+        max_overlap = heapq.heappop(h)
+        print "hi"
+        print max_overlap
+        if check_for_solution(substrings, max_overlap[1]):
+            print "HIIIIIIIII"
+            return max_overlap[1]
+        if max_overlap[2] in substrings:
+            substrings.remove(max_overlap[2])
+        if max_overlap[3] in substrings:
+            substrings.remove(max_overlap[3])
+        substrings.append(max_overlap[1])
+        for s in substrings:
+            if not (max_overlap[2], s) in merged and not (s, max_overlap[2]) in merged and not (max_overlap[3], s) in merged and not (s, max_overlap[3] in merged):
+                merges = get_max_overlap_2(max_overlap[1], s)
+                for m in merges:
+                    heapq.heappush(h, m)
+    return substrings[0]
+    """
+    imm = []
+    seen = set()
+    for r1 in substrings:
+        for r2 in substrings:
+            if r1 != r2 and not (r1, r2) in seen and not (r2, r1) in seen:
+                res = get_max_overlap_2(r1, r2)
+                heapq.heappush(imm, res)
+                seen.add((r1, r2))
+                seen.add((r2, r1))
+    #print imm
+    while len(substrings) != 1:
+        print len(substrings)
+        max_overlap = heapq.heappop(imm)
+        #print max_overlap
+        if check_for_solution(substrings_copy, max_overlap[1]):
+            return max_overlap[1]
+        if max_overlap[2] in substrings:
+            substrings.remove(max_overlap[2])
+        if max_overlap[3] in substrings:
+            substrings.remove(max_overlap[3])
+        for s in substrings:
+            if s!=max_overlap[1] and not (max_overlap[1], s) in seen and not (s, max_overlap[1]) in seen:
+                res = get_max_overlap_2(max_overlap[1], s)
+                heapq.heappush(imm, res)
+                seen.add((max_overlap[1], s))
+                seen.add((s,max_overlap[1]))
+            #else:
+                #print "YOOOOOOOO"
+        substrings.append(max_overlap[1])
+    print "HIIII"
 
-def check_for_solurion(substrings_copy, curr_res):
+
+def check_for_solution(substrings_copy, curr_res):
     for s in substrings_copy:
-        if s not in curr_res:
+        if not s in curr_res:
             return False
     return True
 
 def get_max_overlap_2(s1, s2):
     if s1 in s2:
-        return s2, len(s1)
+        return (-len(s1), s2, s1, s2)
 
     if s2 in s1:
-        return s1, len(s2)
+        return (-len(s2), s1, s1, s2)
 
     if len(s1) == len(s2):
         small = s1
@@ -57,16 +119,14 @@ def get_max_overlap_2(s1, s2):
             prefix = large[:j]
             pos_res.append((prefix + small, float(2.0*(len_large - len(prefix)))))
     if pos_res:
-        return max(pos_res, key=lambda x: x[1])
+        res = max(pos_res, key=lambda x: x[1])
+        return (-res[1], res[0], s1, s2)
     #no overlap 
-    return None, 0.0
+    return (0.0, None, s1, s2)
 
 
 def is_prefix(pre, post):
     return post.startswith(pre)
-    
-
-
 
 def get_max_overlap(s1, s2):
     #smallest possible result is one string is a substring of the other
