@@ -6,9 +6,8 @@ def main():
         input_i = "../Dataset/reads" + str(i) + ".txt"
         with open(input_i) as f:
             substrings = [line.rstrip() for line in f]
-            substrings_copy = substrings[:]
             start = time.time()
-            res = find_string(substrings, substrings_copy)
+            res = find_string(substrings)
             end = time.time()
             print end - start
             output_i = "../Dataset/output" + str(i) + ".txt"
@@ -19,7 +18,7 @@ def main():
             else:
                 print str(i)
 
-def find_string(substrings, substrings_copy):
+def find_string(substrings):
     while len(substrings) > 2:
         s1 = substrings[0]
         overlaps = []
