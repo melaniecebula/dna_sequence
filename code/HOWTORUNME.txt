@@ -1,0 +1,4 @@
+python code/sequence.py
+
+Will run all of the reads1-16 and will output <read number><passes file diff> and write to Dataset/ouput<read number>.txt
+Also gives the time (in seconds) for each read.
